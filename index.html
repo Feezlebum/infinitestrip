@@ -225,11 +225,9 @@
       const data = await res.json();
       // Only show strips published on or before today
       const today = new Date().toISOString().split('T')[0];
-      strips = [...data.strips]
-        .filter(s => s.date <= today)
-        .reverse(); // newest first
+      strips = data.strips.filter(s => s.date <= today); // chronological, oldest first
       buildThumbs();
-      showStrip(0, false);
+      showStrip(strips.length - 1, false); // start at newest
       document.getElementById('loader').classList.add('hidden');
       if (strips.length > 1) {
         document.getElementById('thumb-bar').classList.add('visible');
@@ -272,13 +270,13 @@
   }
 
   function navigate(dir) {
-    // dir: -1 = older (higher index), +1 = newer (lower index)
+    // dir: -1 = older (lower index), +1 = newer (higher index)
     showStrip(current + dir);
   }
 
   function updateArrows() {
-    document.getElementById('arrow-next').classList.toggle('disabled', current <= 0);
-    document.getElementById('arrow-prev').classList.toggle('disabled', current >= strips.length - 1);
+    document.getElementById('arrow-prev').classList.toggle('disabled', current <= 0); // no older
+    document.getElementById('arrow-next').classList.toggle('disabled', current >= strips.length - 1); // no newer
   }
 
   function buildThumbs() {
@@ -304,7 +302,7 @@
 
   function updateCounter() {
     const total = strips.length;
-    const displayed = strips.length - current;
+    const displayed = current + 1; // 1-indexed
     document.getElementById('issue-counter').textContent = `${displayed} / ${total}`;
   }
 
