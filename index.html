@@ -164,6 +164,33 @@
     }
     #issue-counter.visible { opacity: 1; }
 
+    /* ── LIGHTBOX ── */
+    #lightbox {
+      display: none; opacity: 0;
+      position: fixed; inset: 0; z-index: 500;
+      background: rgba(0,0,0,.96);
+      align-items: center; justify-content: center;
+      transition: opacity .25s ease;
+      cursor: zoom-out;
+    }
+    #lightbox.open { display: flex; }
+    #lightbox.visible { opacity: 1; }
+    #lightbox img {
+      max-width: 100%; max-height: 100dvh;
+      object-fit: contain;
+      touch-action: pinch-zoom;
+      border-radius: 2px;
+    }
+    #lightbox-close {
+      position: absolute; top: 1rem; right: 1rem;
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: rgba(255,255,255,.7); font-size: 1.1rem;
+      transition: background .2s;
+    }
+    #lightbox-close:hover { background: rgba(255,255,255,.18); }
+
     /* ── MOBILE ── */
     @media (max-width: 600px) {
       #nav { padding: 1.25rem 1.25rem; }
@@ -205,6 +232,12 @@
     <div id="caption-day">Day 001</div>
     <div id="caption-date">—</div>
   </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" onclick="closeLightbox()">
+  <div id="lightbox-close" onclick="closeLightbox()">✕</div>
+  <img id="lightbox-img" src="" alt="Infinite Strip fullscreen">
 </div>
 
 <!-- THUMBNAILS -->
@@ -311,6 +344,33 @@
     const d = new Date(dateStr + 'T12:00:00Z');
     return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   }
+
+  // ── LIGHTBOX ──
+  const comicImg = document.getElementById('comic-img');
+  comicImg.style.cursor = 'zoom-in';
+
+  comicImg.addEventListener('click', openLightbox);
+
+  function openLightbox() {
+    const lb = document.getElementById('lightbox');
+    const lbImg = document.getElementById('lightbox-img');
+    lbImg.src = comicImg.src;
+    lb.classList.add('open');
+    requestAnimationFrame(() => lb.classList.add('visible'));
+    document.body.style.overflow = 'hidden';
+  }
+
+  window.closeLightbox = function() {
+    const lb = document.getElementById('lightbox');
+    lb.classList.remove('visible');
+    setTimeout(() => { lb.classList.remove('open'); document.body.style.overflow = ''; }, 250);
+  };
+
+  // Close on escape
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+  // Prevent lightbox image tap from closing (allow pinch-zoom)
+  document.getElementById('lightbox-img').addEventListener('click', e => e.stopPropagation());
 
   // Keyboard navigation
   document.addEventListener('keydown', e => {
