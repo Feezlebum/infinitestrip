@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How It Works — Infinite Strip</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;1,300&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #080808;
+      --surface: #111111;
+      --border: rgba(255,255,255,0.07);
+      --text: #E8E8E8;
+      --muted: rgba(255,255,255,0.35);
+      --gold: #C4974E;
+      --gold-dim: rgba(196,151,78,0.12);
+    }
+    *,*::before,*::after { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'IBM Plex Mono', monospace;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    body::after {
+      content:''; position:fixed; inset:0; pointer-events:none; z-index:9999; opacity:.022;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+    .serif { font-family: 'EB Garamond', serif; }
+
+    /* NAVBAR */
+    #nav {
+      position: fixed; top:0; left:0; right:0; z-index:100;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:1.5rem 2rem;
+      background: linear-gradient(to bottom, rgba(8,8,8,.9) 0%, transparent 100%);
+    }
+    .nav-logo { font-size:.78rem; font-weight:500; letter-spacing:.18em; text-transform:uppercase; color:var(--text); text-decoration:none; transition:opacity .2s; }
+    .nav-logo:hover { opacity:.6; }
+    .nav-back { font-size:.7rem; font-weight:300; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); text-decoration:none; transition:color .2s; }
+    .nav-back:hover { color:var(--text); }
+
+    /* HERO */
+    #hero {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 8rem 2rem 6rem;
+      position: relative;
+      overflow: hidden;
+    }
+    #hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 60% 50% at 50% 40%, rgba(196,151,78,.05) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .hero-inner { max-width: 720px; text-align: center; }
+    .hero-eyebrow {
+      font-size: .62rem; letter-spacing: .22em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 2rem;
+      opacity: 0; animation: fade-up .8s ease .2s forwards;
+    }
+    .hero-title {
+      font-size: clamp(2.8rem, 7vw, 6rem);
+      line-height: 1.05; margin-bottom: 2rem;
+      opacity: 0; animation: fade-up .9s ease .4s forwards;
+    }
+    .hero-title em {
+      font-family: 'EB Garamond', serif;
+      font-style: italic; color: var(--gold);
+      font-size: 1.05em; font-weight: 400;
+    }
+    .hero-sub {
+      font-size: clamp(.85rem, 1.5vw, 1rem);
+      font-weight: 300; color: var(--muted);
+      line-height: 1.8; max-width: 520px; margin: 0 auto 3rem;
+      opacity: 0; animation: fade-up .9s ease .6s forwards;
+    }
+    .hero-cta {
+      opacity: 0; animation: fade-up .8s ease .8s forwards;
+    }
+    .btn-watch {
+      display: inline-flex; align-items: center; gap: .6rem;
+      padding: .75rem 1.75rem; border-radius: 9999px;
+      border: 1px solid var(--border); background: transparent;
+      font-family: 'IBM Plex Mono', monospace; font-size: .72rem;
+      font-weight: 400; letter-spacing: .12em; text-transform: uppercase;
+      color: var(--text); text-decoration: none;
+      transition: border-color .2s, background .2s;
+    }
+    .btn-watch:hover { border-color: rgba(255,255,255,.2); background: rgba(255,255,255,.04); }
+
+    @keyframes fade-up {
+      from { opacity:0; transform:translateY(24px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    /* GRID LINES */
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+      background-size: 72px 72px;
+    }
+
+    /* CONTENT */
+    .section { padding: 7rem 2rem; max-width: 900px; margin: 0 auto; }
+
+    /* RULES */
+    .rules { display: flex; flex-direction: column; gap: 0; }
+    .rule {
+      display: grid; grid-template-columns: 3rem 1fr;
+      gap: 1.5rem; align-items: flex-start;
+      padding: 2.5rem 0; border-bottom: 1px solid var(--border);
+    }
+    .rule:first-child { border-top: 1px solid var(--border); }
+    .rule-num { font-size: .62rem; color: var(--gold); letter-spacing: .18em; padding-top: .1rem; }
+    .rule-body h3 { font-size: 1rem; font-weight: 500; letter-spacing: -.01em; margin-bottom: .6rem; }
+    .rule-body p { font-size: .82rem; font-weight: 300; color: var(--muted); line-height: 1.75; }
+
+    /* MANIFESTO BLOCK */
+    .manifesto {
+      text-align: center; padding: 8rem 2rem;
+      position: relative; overflow: hidden;
+    }
+    .manifesto::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(196,151,78,.05) 0%, transparent 65%);
+    }
+    .manifesto-q {
+      font-size: clamp(1.6rem, 4vw, 3.2rem);
+      font-family: 'EB Garamond', serif;
+      font-style: italic; font-weight: 400;
+      line-height: 1.35; color: var(--muted);
+      max-width: 700px; margin: 0 auto 2.5rem;
+      position: relative;
+    }
+    .manifesto-q span { color: var(--text); }
+
+    /* PROMPT BOX */
+    .prompt-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 1rem; padding: 2rem;
+      margin: 0 auto; max-width: 680px;
+      text-align: left;
+    }
+    .prompt-label {
+      font-size: .58rem; letter-spacing: .2em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 1.25rem;
+      display: flex; align-items: center; gap: .75rem;
+    }
+    .prompt-label::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+    .prompt-text {
+      font-size: .8rem; font-weight: 300; color: var(--muted);
+      line-height: 1.8; font-style: italic;
+      font-family: 'EB Garamond', serif; font-size: 1rem;
+    }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem 2rem;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 1rem;
+      max-width: 900px; margin: 0 auto;
+    }
+    footer p { font-size: .65rem; color: rgba(255,255,255,.2); letter-spacing: .08em; }
+    .status-dot {
+      width: 6px; height: 6px; background: #10B981; border-radius: 50%;
+      display: inline-block; margin-right: .4rem;
+      animation: status-pulse 2.5s ease-in-out infinite;
+    }
+    @keyframes status-pulse { 0%,100%{opacity:1}50%{opacity:.3} }
+
+    @media (max-width: 600px) {
+      #nav { padding: 1.25rem; }
+      .rule { grid-template-columns: 2rem 1fr; gap: 1rem; }
+      .section { padding: 5rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<nav id="nav">
+  <a class="nav-logo" href="/">Infinite Strip</a>
+  <a class="nav-back" href="/">← Today's Strip</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-inner">
+    <p class="hero-eyebrow">An experiment in autonomous narrative</p>
+    <h1 class="hero-title">
+      A comic with<br>
+      <em>no author.</em>
+    </h1>
+    <p class="hero-sub">
+      Every day at 11am, an AI publishes the next page. No human writes the story. No human decides what happens next. It just continues — indefinitely.
+    </p>
+    <div class="hero-cta">
+      <a class="btn-watch" href="/">Read today's strip →</a>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section grid-bg">
+  <p style="font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:2.5rem;">The rules</p>
+  <div class="rules">
+    <div class="rule">
+      <span class="rule-num">01</span>
+      <div class="rule-body">
+        <h3>One page per day, exactly at 11am.</h3>
+        <p>Every morning, a new 4-panel page is generated and published. No exceptions, no skipped days, no editorial oversight. The strip runs on schedule regardless of what happened the day before.</p>
+      </div>
+    </div>
+    <div class="rule">
+      <span class="rule-num">02</span>
+      <div class="rule-body">
+        <h3>The AI sees only yesterday.</h3>
+        <p>Each generation receives a single reference: the previous day's page. No story bible. No character sheets. No plot outline. Just the image immediately before it, and the instruction to continue.</p>
+      </div>
+    </div>
+    <div class="rule">
+      <span class="rule-num">03</span>
+      <div class="rule-body">
+        <h3>Safe storytelling is the only failure condition.</h3>
+        <p>The prompt explicitly instructs the model to take risks — genre shifts, time jumps, unexpected characters, tonal pivots. It is told that playing it safe is the one thing it cannot do.</p>
+      </div>
+    </div>
+    <div class="rule">
+      <span class="rule-num">04</span>
+      <div class="rule-body">
+        <h3>No human intervention. Ever.</h3>
+        <p>We don't curate. We don't regenerate pages we don't like. We don't fix continuity errors. Whatever the model produces, that's the canon. The archive is a complete and unedited record.</p>
+      </div>
+    </div>
+    <div class="rule">
+      <span class="rule-num">05</span>
+      <div class="rule-body">
+        <h3>It has no ending.</h3>
+        <p>There is no planned conclusion. The strip will continue for as long as the technology exists to run it. What happens is genuinely unknown — to us, and to the model generating it.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MANIFESTO -->
+<div class="manifesto">
+  <p class="manifesto-q">
+    "The most interesting question isn't what AI can create.<br>
+    It's what it creates <span>when no one is watching.</span>"
+  </p>
+</div>
+
+<!-- THE PROMPT -->
+<section class="section" style="padding-top:0;">
+  <p style="font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:2.5rem;text-align:center;">The daily prompt</p>
+  <div class="prompt-box">
+    <div class="prompt-label">Sent every day alongside the previous page</div>
+    <p class="prompt-text">
+      "You are the sole author and artist of Infinite Strip — an everlasting comic published daily with no human intervention and no predetermined ending. You have total creative authority.<br><br>
+      Here is yesterday's page.<br><br>
+      Generate the next page: 4 panels in a 2×2 grid. Two rules only: preserve the established art style, colour palette, and character designs — and pick up directly from where the story left off. Everything else is yours. Time can jump. Characters can change. The world can fracture. Dreams, flashbacks, new characters, genre shifts, moments of pure silence — nothing is off limits. Safe storytelling is the only failure condition.<br><br>
+      For any text or dialogue: ensure it is clearly legible, correctly spelled, and does not obscure the artwork.<br><br>
+      End on something that makes tomorrow feel necessary."
+    </p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2026 Infinite Strip — an autonomous narrative experiment</p>
+  <p><span class="status-dot"></span>Publishing daily at 11:00 AM EST</p>
+</footer>
+
+</body>
+</html>

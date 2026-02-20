@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Infinite Strip</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;1,300&family=EB+Garamond:ital,wght@0,400;1,400;1,500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #080808;
+      --surface: #111111;
+      --border: rgba(255,255,255,0.07);
+      --text: #E8E8E8;
+      --muted: rgba(255,255,255,0.32);
+      --gold: #C4974E;
+    }
+    *,*::before,*::after { margin:0; padding:0; box-sizing:border-box; }
+    html, body { height:100%; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'IBM Plex Mono', monospace;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Noise */
+    body::after {
+      content:''; position:fixed; inset:0; pointer-events:none; z-index:9999;
+      opacity:.022;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    /* ── NAVBAR ── */
+    #nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.5rem 2rem;
+      background: linear-gradient(to bottom, rgba(8,8,8,.9) 0%, transparent 100%);
+    }
+    .nav-logo {
+      font-size: .78rem; font-weight: 500; letter-spacing: .18em;
+      text-transform: uppercase; color: var(--text); text-decoration: none;
+      transition: opacity .2s;
+    }
+    .nav-logo:hover { opacity: .6; }
+    .nav-link {
+      font-size: .7rem; font-weight: 300; letter-spacing: .14em;
+      text-transform: uppercase; color: var(--muted); text-decoration: none;
+      transition: color .2s;
+    }
+    .nav-link:hover { color: var(--text); }
+
+    /* ── MAIN STAGE ── */
+    #stage {
+      position: fixed; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 1.25rem;
+    }
+
+    /* ── COMIC FRAME ── */
+    #comic-wrap {
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #comic-img {
+      display: block;
+      max-height: 78vh;
+      max-width: min(78vh, 90vw);
+      width: auto; height: auto;
+      border-radius: 4px;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.06), 0 30px 80px rgba(0,0,0,.8), 0 8px 24px rgba(0,0,0,.6);
+      transition: opacity .45s ease;
+    }
+    #comic-img.fading { opacity: 0; }
+
+    /* ── NAV ARROWS ── */
+    .arrow {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%; border: 1px solid var(--border);
+      background: rgba(8,8,8,.5); backdrop-filter: blur(8px);
+      cursor: pointer; opacity: 0;
+      transition: opacity .3s ease, background .2s ease, border-color .2s ease;
+      user-select: none;
+    }
+    #comic-wrap:hover .arrow { opacity: 1; }
+    .arrow:hover { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.15); }
+    .arrow.disabled { opacity: 0 !important; pointer-events: none; }
+    #arrow-prev { right: calc(100% + 1.25rem); }
+    #arrow-next { left: calc(100% + 1.25rem); }
+    .arrow svg { width: 16px; height: 16px; stroke: var(--muted); stroke-width: 1.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* ── CAPTION ── */
+    #caption {
+      text-align: center;
+      transition: opacity .45s ease;
+    }
+    #caption.fading { opacity: 0; }
+    #caption-day {
+      font-size: .68rem; font-weight: 500; letter-spacing: .22em;
+      text-transform: uppercase; color: var(--gold); margin-bottom: .3rem;
+    }
+    #caption-date {
+      font-size: .62rem; font-weight: 300; letter-spacing: .14em;
+      color: var(--muted);
+    }
+
+    /* ── THUMBNAIL STRIP ── */
+    #thumb-bar {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      padding: 1.25rem 2rem 1.5rem;
+      background: linear-gradient(to top, rgba(8,8,8,.95) 0%, transparent 100%);
+      display: flex; justify-content: center;
+      opacity: 0; transform: translateY(8px);
+      transition: opacity .4s ease, transform .4s ease;
+    }
+    #thumb-bar.visible { opacity: 1; transform: translateY(0); }
+    #thumb-scroll {
+      display: flex; gap: .5rem; align-items: center;
+      overflow-x: auto; max-width: 100%;
+      scrollbar-width: none;
+    }
+    #thumb-scroll::-webkit-scrollbar { display: none; }
+    .thumb {
+      flex-shrink: 0; width: 38px; height: 38px;
+      border-radius: 3px; overflow: hidden;
+      border: 1px solid var(--border);
+      cursor: pointer; opacity: .45;
+      transition: opacity .2s, border-color .2s, transform .2s;
+    }
+    .thumb:hover { opacity: .75; transform: translateY(-2px); }
+    .thumb.active { opacity: 1; border-color: var(--gold); }
+    .thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* ── LOADING ── */
+    #loader {
+      position: fixed; inset: 0; z-index: 50;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--bg);
+      transition: opacity .6s ease;
+    }
+    #loader.hidden { opacity: 0; pointer-events: none; }
+    .loader-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--gold); opacity: .4;
+      animation: loader-pulse 1.4s ease-in-out infinite;
+    }
+    .loader-dot:nth-child(2) { animation-delay: .2s; margin: 0 .4rem; }
+    .loader-dot:nth-child(3) { animation-delay: .4s; }
+    @keyframes loader-pulse { 0%,80%,100%{opacity:.2; transform:scale(.8)} 40%{opacity:1; transform:scale(1)} }
+
+    /* ── ISSUE COUNTER ── */
+    #issue-counter {
+      position: fixed; bottom: 5.5rem; right: 2rem;
+      font-size: .58rem; letter-spacing: .18em; color: rgba(255,255,255,.18);
+      text-transform: uppercase; opacity: 0;
+      transition: opacity .4s ease;
+    }
+    #issue-counter.visible { opacity: 1; }
+
+    /* ── MOBILE ── */
+    @media (max-width: 600px) {
+      #nav { padding: 1.25rem 1.25rem; }
+      #comic-img { max-height: 70vw; max-width: 92vw; }
+      #arrow-prev { right: calc(100% + .5rem); }
+      #arrow-next { left: calc(100% + .5rem); }
+      .arrow { width: 36px; height: 36px; opacity: .6; }
+      #thumb-bar { padding: 1rem 1.25rem 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-dot"></div>
+  <div class="loader-dot"></div>
+  <div class="loader-dot"></div>
+</div>
+
+<!-- NAV -->
+<nav id="nav">
+  <a class="nav-logo" href="/">Infinite Strip</a>
+  <a class="nav-link" href="how-it-works.html">How it works →</a>
+</nav>
+
+<!-- STAGE -->
+<div id="stage">
+  <div id="comic-wrap">
+    <div id="arrow-prev" class="arrow disabled" onclick="navigate(-1)">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </div>
+    <img id="comic-img" src="" alt="Infinite Strip">
+    <div id="arrow-next" class="arrow disabled" onclick="navigate(1)">
+      <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+  </div>
+  <div id="caption">
+    <div id="caption-day">Day 001</div>
+    <div id="caption-date">—</div>
+  </div>
+</div>
+
+<!-- THUMBNAILS -->
+<div id="thumb-bar">
+  <div id="thumb-scroll"></div>
+</div>
+
+<!-- ISSUE COUNTER -->
+<div id="issue-counter"></div>
+
+<script>
+  let strips = [];
+  let current = 0; // index into strips, 0 = most recent
+
+  async function init() {
+    try {
+      const res = await fetch('manifest.json?t=' + Date.now());
+      const data = await res.json();
+      strips = [...data.strips].reverse(); // newest first
+      buildThumbs();
+      showStrip(0, false);
+      document.getElementById('loader').classList.add('hidden');
+      if (strips.length > 1) {
+        document.getElementById('thumb-bar').classList.add('visible');
+        document.getElementById('issue-counter').classList.add('visible');
+      }
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
+  function showStrip(idx, animate = true) {
+    if (idx < 0 || idx >= strips.length) return;
+    current = idx;
+    const strip = strips[idx];
+
+    const img = document.getElementById('comic-img');
+    const cap = document.getElementById('caption');
+
+    if (animate) {
+      img.classList.add('fading');
+      cap.classList.add('fading');
+      setTimeout(() => {
+        setStrip(strip, img, cap);
+        img.classList.remove('fading');
+        cap.classList.remove('fading');
+      }, 450);
+    } else {
+      setStrip(strip, img, cap);
+    }
+
+    updateArrows();
+    updateThumbs();
+    updateCounter();
+  }
+
+  function setStrip(strip, img, cap) {
+    img.src = strip.file + '?t=' + Date.now();
+    document.getElementById('caption-day').textContent = strip.label;
+    document.getElementById('caption-date').textContent = formatDate(strip.date);
+  }
+
+  function navigate(dir) {
+    // dir: -1 = older (higher index), +1 = newer (lower index)
+    showStrip(current + dir);
+  }
+
+  function updateArrows() {
+    document.getElementById('arrow-next').classList.toggle('disabled', current <= 0);
+    document.getElementById('arrow-prev').classList.toggle('disabled', current >= strips.length - 1);
+  }
+
+  function buildThumbs() {
+    const scroll = document.getElementById('thumb-scroll');
+    scroll.innerHTML = '';
+    strips.forEach((strip, i) => {
+      const div = document.createElement('div');
+      div.className = 'thumb' + (i === 0 ? ' active' : '');
+      div.innerHTML = `<img src="${strip.file}" alt="${strip.label}" loading="lazy">`;
+      div.addEventListener('click', () => showStrip(i));
+      scroll.appendChild(div);
+    });
+  }
+
+  function updateThumbs() {
+    document.querySelectorAll('.thumb').forEach((el, i) => {
+      el.classList.toggle('active', i === current);
+    });
+    // Scroll active thumb into view
+    const active = document.querySelector('.thumb.active');
+    if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }
+
+  function updateCounter() {
+    const total = strips.length;
+    const displayed = strips.length - current;
+    document.getElementById('issue-counter').textContent = `${displayed} / ${total}`;
+  }
+
+  function formatDate(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr + 'T12:00:00Z');
+    return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  }
+
+  // Keyboard navigation
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowLeft')  navigate(-1); // older
+    if (e.key === 'ArrowRight') navigate(1);  // newer
+  });
+
+  // Touch/swipe
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) navigate(dx < 0 ? 1 : -1);
+  }, { passive: true });
+
+  init();
+</script>
+</body>
+</html>
