@@ -223,7 +223,11 @@
     try {
       const res = await fetch('manifest.json?t=' + Date.now());
       const data = await res.json();
-      strips = [...data.strips].reverse(); // newest first
+      // Only show strips published on or before today
+      const today = new Date().toISOString().split('T')[0];
+      strips = [...data.strips]
+        .filter(s => s.date <= today)
+        .reverse(); // newest first
       buildThumbs();
       showStrip(0, false);
       document.getElementById('loader').classList.add('hidden');
