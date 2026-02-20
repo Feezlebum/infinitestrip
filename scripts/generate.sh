@@ -149,30 +149,41 @@ call_api_with_image() {
   local output="$3"
   local max_retries=8
   local wait=20
+  local payload_file="/tmp/is_payload_$$.json"
 
-  local img_b64
-  img_b64=$(python3 -c "import base64; print(base64.b64encode(open('$ref_image','rb').read()).decode())")
-  local mime_type="image/png"
+  # Write prompt + build payload file (avoids "argument list too long")
+  printf '%s' "$prompt" > /tmp/is_prompt_$$.txt
+  python3 -c "
+import json, base64
+prompt = open('/tmp/is_prompt_$$.txt').read()
+img_b64 = base64.b64encode(open('$ref_image','rb').read()).decode()
+payload = {
+    'contents': [{'parts': [
+        {'text': prompt},
+        {'inlineData': {'mimeType': 'image/png', 'data': img_b64}}
+    ]}],
+    'generationConfig': {'responseModalities': ['image', 'text']}
+}
+json.dump(payload, open('$payload_file','w'))
+"
 
   for i in $(seq 1 $max_retries); do
     echo "  → API call attempt $i/$max_retries (with image ref)..."
-    local response
-    response=$(curl -s --max-time 150 -X POST "$API_URL?key=${API_KEY}" \
+    local response_file="/tmp/is_response_$$.json"
+    curl -s --max-time 150 -X POST "$API_URL?key=${API_KEY}" \
       -H "Content-Type: application/json" \
-      -d "{\"contents\":[{\"parts\":[
-        {\"text\":$(echo "$prompt"|python3 -c 'import json,sys;print(json.dumps(sys.stdin.read()))')},
-        {\"inlineData\":{\"mimeType\":\"$mime_type\",\"data\":\"$img_b64\"}}
-      ]}],\"generationConfig\":{\"responseModalities\":[\"image\",\"text\"]}}")
+      -d "@$payload_file" \
+      -o "$response_file"
 
-    if [[ -z "$response" ]]; then
-      echo "  ✗ Empty — waiting ${wait}s..."
+    if [[ ! -s "$response_file" ]]; then
+      echo "  ✗ Empty response — waiting ${wait}s..."
       sleep $wait; wait=$((wait + 10)); continue
     fi
 
     local result
-    result=$(echo "$response" | python3 -c "
+    result=$(python3 -c "
 import json,sys,base64
-data=json.loads(sys.stdin.read())
+data=json.load(open('$response_file'))
 for part in data.get('candidates',[{}])[0].get('content',{}).get('parts',[]):
     if 'inlineData' in part:
         with open('$output','wb') as f:
@@ -185,6 +196,7 @@ print('ERR:',err.get('code','?'),'|',err.get('message','?')[:80])
 
     if [[ "$result" == "OK" ]]; then
       echo "  ✓ Image saved: $output"
+      rm -f "$payload_file" "$response_file" "/tmp/is_prompt_$$.txt"
       return 0
     else
       echo "  ✗ $result — waiting ${wait}s..."
@@ -192,6 +204,7 @@ print('ERR:',err.get('code','?'),'|',err.get('message','?')[:80])
     fi
   done
 
+  rm -f "$payload_file" "$response_file" "/tmp/is_prompt_$$.txt"
   echo "ERROR: Failed after $max_retries attempts"
   return 1
 }
