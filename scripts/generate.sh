@@ -209,7 +209,7 @@ print('ERR:',err.get('code','?'),'|',err.get('message','?')[:80])
   return 1
 }
 
-# ── Commit and push ──
+# ── Commit, push, and deploy ──
 commit_and_push() {
   local day="$1"
   local padded=$(pad_day $day)
@@ -223,6 +223,19 @@ commit_and_push() {
   git commit -m "Day ${padded} — $(date -u +%Y-%m-%d)" 2>/dev/null || echo "Nothing to commit"
   git push origin master
   echo "  ✓ Pushed to GitHub: day-${padded}.png"
+
+  # Deploy to Vercel
+  source ~/.bashrc 2>/dev/null || true
+  VTOKEN="${VERCEL_TOKEN:-}"
+  if [[ -n "$VTOKEN" ]]; then
+    echo "  → Deploying to Vercel..."
+    cd "$SCRIPT_DIR/.."
+    vercel --prod --yes --token "$VTOKEN" > /tmp/vercel-deploy.log 2>&1 \
+      && echo "  ✓ Deployed to infinitestrip.com" \
+      || echo "  ✗ Vercel deploy failed — check /tmp/vercel-deploy.log"
+  else
+    echo "  ⚠ VERCEL_TOKEN not set — skipping deploy"
+  fi
 
   # Copy to share
   cp "$STRIP_DIR/day-${padded}.png" "$SHARE_DIR/day-${padded}.png"
