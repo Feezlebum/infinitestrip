@@ -60,6 +60,7 @@
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
       gap: 1.25rem;
+      padding-bottom: 7rem; /* clear the thumbnail bar */
     }
 
     /* ── COMIC FRAME ── */
@@ -256,9 +257,12 @@
     try {
       const res = await fetch('manifest.json?t=' + Date.now());
       const data = await res.json();
-      // Only show strips published on or before today
-      const today = new Date().toISOString().split('T')[0];
-      strips = data.strips.filter(s => s.date <= today); // chronological, oldest first
+      // Only show strips published on or before 11am EST (16:00 UTC) on their date
+      const now = new Date();
+      strips = data.strips.filter(s => {
+        const releaseTime = new Date(s.date + 'T16:00:00Z'); // 11:00 EST = 16:00 UTC
+        return releaseTime <= now;
+      }); // chronological, oldest first
       buildThumbs();
       showStrip(strips.length - 1, false); // start at newest
       document.getElementById('loader').classList.add('hidden');
