@@ -252,10 +252,11 @@
 <script>
   let strips = [];
   let current = 0; // index into strips, 0 = most recent
+  let thumbObserver = null;
 
   async function init() {
     try {
-      const res = await fetch('manifest.json?t=' + Date.now());
+      const res = await fetch('manifest.json', { cache: 'no-store' });
       const data = await res.json();
       // Only show strips published on or before 11am EST (16:00 UTC) on their date
       const now = new Date();
@@ -301,9 +302,10 @@
   }
 
   function setStrip(strip, img, cap) {
-    img.src = strip.file + '?t=' + Date.now();
+    img.src = strip.file;
     document.getElementById('caption-day').textContent = strip.label;
     document.getElementById('caption-date').textContent = formatDate(strip.date);
+    preloadAdjacent(current);
   }
 
   function navigate(dir) {
@@ -319,12 +321,50 @@
   function buildThumbs() {
     const scroll = document.getElementById('thumb-scroll');
     scroll.innerHTML = '';
+
+    if (thumbObserver) thumbObserver.disconnect();
+    thumbObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const img = entry.target;
+        const src = img.dataset.src;
+        if (src && img.src !== src) img.src = src;
+        thumbObserver.unobserve(img);
+      });
+    }, {
+      root: scroll,
+      rootMargin: '240px'
+    });
+
     strips.forEach((strip, i) => {
       const div = document.createElement('div');
       div.className = 'thumb' + (i === 0 ? ' active' : '');
-      div.innerHTML = `<img src="${strip.file}" alt="${strip.label}" loading="lazy">`;
+
+      const thumbImg = document.createElement('img');
+      thumbImg.alt = strip.label;
+      thumbImg.loading = 'lazy';
+      thumbImg.decoding = 'async';
+      thumbImg.width = 38;
+      thumbImg.height = 38;
+      thumbImg.dataset.src = strip.file;
+
+      if (Math.abs(i - current) <= 12 || i >= strips.length - 12) {
+        thumbImg.src = strip.file;
+      } else {
+        thumbObserver.observe(thumbImg);
+      }
+
+      div.appendChild(thumbImg);
       div.addEventListener('click', () => showStrip(i));
       scroll.appendChild(div);
+    });
+  }
+
+  function preloadAdjacent(idx) {
+    [idx - 1, idx + 1].forEach(i => {
+      if (i < 0 || i >= strips.length) return;
+      const preload = new Image();
+      preload.src = strips[i].file;
     });
   }
 
