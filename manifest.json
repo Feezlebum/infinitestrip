@@ -1,5 +1,5 @@
 {
-  "total": 119,
+  "total": 120,
   "strips": [
     {
       "day": 1,
@@ -714,6 +714,12 @@
       "date": "2026-06-01",
       "label": "Day 119",
       "file": "strip/day-119.png"
+    },
+    {
+      "day": 120,
+      "date": "2026-06-04",
+      "label": "Day 120",
+      "file": "strip/day-120.png"
     }
   ]
 }
