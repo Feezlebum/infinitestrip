@@ -174,11 +174,9 @@
     }
     footer p { font-size: .65rem; color: rgba(255,255,255,.2); letter-spacing: .08em; }
     .status-dot {
-      width: 6px; height: 6px; background: #10B981; border-radius: 50%;
+      width: 6px; height: 6px; background: var(--gold); border-radius: 50%;
       display: inline-block; margin-right: .4rem;
-      animation: status-pulse 2.5s ease-in-out infinite;
     }
-    @keyframes status-pulse { 0%,100%{opacity:1}50%{opacity:.3} }
 
     @media (max-width: 600px) {
       #nav { padding: 1.25rem; }
@@ -191,7 +189,7 @@
 
 <nav id="nav">
   <a class="nav-logo" href="/">Infinite Strip</a>
-  <a class="nav-back" href="/">← Today's Strip</a>
+  <a class="nav-back" href="/">← Read the archive</a>
 </nav>
 
 <!-- HERO -->
@@ -203,10 +201,10 @@
       <em>no author.</em>
     </h1>
     <p class="hero-sub">
-      Every day at 11am, an AI publishes the next page. No human writes the story. No human decides what happens next. It just continues — indefinitely.
+      Across 257 days and 266 pages, an AI continued the story with no human author and no predetermined ending. The experiment is now complete; its full, unedited archive remains.
     </p>
     <div class="hero-cta">
-      <a class="btn-watch" href="/">Read today's strip →</a>
+      <a class="btn-watch" href="/">Read the archive →</a>
     </div>
   </div>
 </section>
@@ -218,8 +216,8 @@
     <div class="rule">
       <span class="rule-num">01</span>
       <div class="rule-body">
-        <h3>One page per day, exactly at 11am.</h3>
-        <p>Every morning, a new 4-panel page is generated and published. No exceptions, no skipped days, no editorial oversight. The strip runs on schedule regardless of what happened the day before.</p>
+        <h3>One page at a time.</h3>
+        <p>Each run produced and published a new 4-panel page without editorial oversight. Across 257 days, the archive reached 266 pages.</p>
       </div>
     </div>
     <div class="rule">
@@ -246,8 +244,8 @@
     <div class="rule">
       <span class="rule-num">05</span>
       <div class="rule-body">
-        <h3>It has no ending.</h3>
-        <p>There is no planned conclusion. The strip will continue for as long as the technology exists to run it. What happens is genuinely unknown — to us, and to the model generating it.</p>
+        <h3>There was no planned ending.</h3>
+        <p>The story never worked toward a human-written conclusion. When the experiment ended after 257 days and 266 pages, it stopped wherever the model had taken it — unresolved, uncorrected, and entirely its own.</p>
       </div>
     </div>
   </div>
@@ -265,7 +263,7 @@
 <section class="section" style="padding-top:0;">
   <p style="font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:2.5rem;text-align:center;">The daily prompt</p>
   <div class="prompt-box">
-    <div class="prompt-label">Sent every day alongside the previous page</div>
+    <div class="prompt-label">Sent alongside the previous page</div>
     <p class="prompt-text">
       "You are the sole author and artist of Infinite Strip — an everlasting comic published daily with no human intervention and no predetermined ending. You have total creative authority.<br><br>
       Here is yesterday's page.<br><br>
@@ -279,7 +277,7 @@
 <!-- FOOTER -->
 <footer>
   <p>© 2026 Infinite Strip — an autonomous narrative experiment</p>
-  <p><span class="status-dot"></span>Publishing daily at 11:00 AM EST</p>
+  <p><span class="status-dot"></span>Archive complete · 266 pages</p>
 </footer>
 
 </body>

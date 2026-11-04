@@ -16,6 +16,7 @@
       --text: #E8E8E8;
       --muted: rgba(255,255,255,0.32);
       --gold: #C4974E;
+      --gold-soft: rgba(196,151,78,.12);
     }
     *,*::before,*::after { margin:0; padding:0; box-sizing:border-box; }
     html, body { height:100%; }
@@ -54,13 +55,62 @@
     }
     .nav-link:hover { color: var(--text); }
 
+    /* ── EPILOGUE ── */
+    #epilogue {
+      position: fixed; top: 4.75rem; left: 50%; z-index: 90;
+      width: min(760px, calc(100vw - 4rem));
+      transform: translateX(-50%);
+      display: grid; grid-template-columns: 4.5rem 1fr;
+      gap: 1.25rem; align-items: center;
+      padding: 1rem 1.25rem 1rem 1rem;
+      border: 1px solid rgba(196,151,78,.28);
+      border-radius: 10px;
+      background:
+        linear-gradient(135deg, rgba(196,151,78,.08), transparent 42%),
+        rgba(12,12,12,.92);
+      box-shadow: 0 22px 60px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.035);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+    #epilogue::before {
+      content: ''; position: absolute; top: -1px; left: 1.25rem;
+      width: 5rem; height: 1px;
+      background: linear-gradient(90deg, var(--gold), transparent);
+    }
+    .epilogue-number {
+      width: 4.5rem; aspect-ratio: 1;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      border: 1px solid rgba(196,151,78,.24);
+      border-radius: 50%;
+      background: var(--gold-soft);
+      color: var(--gold);
+      line-height: 1;
+    }
+    .epilogue-number strong { font-size: 1.1rem; font-weight: 500; letter-spacing: -.04em; }
+    .epilogue-number span { margin-top: .35rem; font-size: .47rem; letter-spacing: .18em; text-transform: uppercase; }
+    .epilogue-kicker {
+      margin-bottom: .3rem;
+      font-size: .55rem; font-weight: 500; letter-spacing: .2em;
+      text-transform: uppercase; color: var(--gold);
+    }
+    .epilogue-title {
+      margin-bottom: .35rem;
+      font-family: 'EB Garamond', serif;
+      font-size: 1.25rem; font-style: italic; font-weight: 400;
+      line-height: 1.1; color: var(--text);
+    }
+    .epilogue-copy {
+      max-width: 610px;
+      font-size: .61rem; font-weight: 300; line-height: 1.6;
+      color: rgba(255,255,255,.46);
+    }
+
     /* ── MAIN STAGE ── */
     #stage {
-      position: fixed; inset: 0;
+      position: fixed; top: 12.5rem; right: 0; bottom: 5.5rem; left: 0;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
       gap: 1.25rem;
-      padding-bottom: 7rem; /* clear the thumbnail bar */
     }
 
     /* ── COMIC FRAME ── */
@@ -70,7 +120,7 @@
     }
     #comic-img {
       display: block;
-      max-height: 78vh;
+      max-height: min(62vh, calc(100dvh - 21rem));
       max-width: min(78vh, 90vw);
       width: auto; height: auto;
       border-radius: 4px;
@@ -195,6 +245,17 @@
     /* ── MOBILE ── */
     @media (max-width: 600px) {
       #nav { padding: 1.25rem 1.25rem; }
+      #epilogue {
+        top: 4.25rem;
+        width: calc(100vw - 2rem);
+        grid-template-columns: 1fr;
+        gap: 0;
+        padding: .9rem 1rem 1rem;
+      }
+      .epilogue-number { display: none; }
+      .epilogue-title { font-size: 1.08rem; }
+      .epilogue-copy { font-size: .57rem; line-height: 1.5; }
+      #stage { top: 13.25rem; bottom: 5rem; justify-content: flex-start; padding-top: 1rem; }
       #comic-img { max-height: 70vw; max-width: 92vw; }
       #arrow-prev { right: calc(100% + .5rem); }
       #arrow-next { left: calc(100% + .5rem); }
@@ -217,6 +278,19 @@
   <a class="nav-logo" href="/">Infinite Strip</a>
   <a class="nav-link" href="how-it-works.html">How it works →</a>
 </nav>
+
+<!-- EPILOGUE -->
+<aside id="epilogue" aria-labelledby="epilogue-title">
+  <div class="epilogue-number" aria-hidden="true">
+    <strong>266</strong>
+    <span>pages</span>
+  </div>
+  <div>
+    <p class="epilogue-kicker">The final panel · 257 days · 266 pages</p>
+    <h1 class="epilogue-title" id="epilogue-title">After 257 days, Infinite Strip has come to an end.</h1>
+    <p class="epilogue-copy">What began as an experiment in AI creative autonomy became 266 pages of unedited, self-directed storytelling. No human chose the plot, corrected the continuity, or decided what came next. The experiment is complete. The full archive remains.</p>
+  </div>
+</aside>
 
 <!-- STAGE -->
 <div id="stage">
